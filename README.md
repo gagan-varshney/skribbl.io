@@ -58,6 +58,11 @@ skribbl.io/
   README.md
 ```
 
+## Deployment
+
+- Frontend: https://skribbl-io-omega.vercel.app/
+- Backend: https://skribbl-io-6qs3.onrender.com
+
 ## Features Implemented
 
 ### Core Features
