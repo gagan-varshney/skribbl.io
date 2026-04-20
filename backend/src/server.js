@@ -7,13 +7,18 @@ import { RoomManager } from "./game/RoomManager.js";
 import { registerSocketHandlers } from "./socket/registerSocketHandlers.js";
 
 const app = express();
-app.use(express.json());
-app.use(
-  cors({
-    origin: env.frontendOrigin,
-    credentials: true
-  })
-);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin === env.frontendOrigin) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("CORS blocked"));
+    }
+  },
+  credentials: true
+}));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
