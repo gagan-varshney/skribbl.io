@@ -1,4 +1,4 @@
-# Skribbl.io Clone (Full Stack)
+# Skribbl.io 
 
 A production-ready multiplayer drawing and guessing game built with:
 
@@ -60,8 +60,8 @@ skribbl.io/
 
 ## Deployment
 
-- Frontend: https://skribbl-io-omega.vercel.app/
-- Backend: https://skribbl-io-6qs3.onrender.com
+- Frontend: https://skribbl-io-omega.vercel.app
+- Backend: https://skribbl-io-m8s4.onrender.com
 
 ## Features Implemented
 
@@ -137,7 +137,7 @@ npm install
 npm run dev
 ```
 
-Backend runs at `http://localhost:4000`.
+Backend runs at `https://skribbl-io-m8s4.onrender.com`.
 
 ## 2. Frontend
 
@@ -148,19 +148,19 @@ npm install
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173`.
+Frontend runs at `https://skribbl-io-omega.vercel.app/`.
 
 ## Environment Variables
 
 ### Backend (`backend/.env`)
 
 - `PORT` (default: `4000`)
-- `FRONTEND_ORIGIN` (default: `http://localhost:5173`)
+- `FRONTEND_ORIGIN` (default: `https://skribbl-io-omega.vercel.app/`)
 - `ROOM_IDLE_TIMEOUT_MS` (default: 1800000)
 
 ### Frontend (`frontend/.env`)
 
-- `VITE_BACKEND_URL` (default: `http://localhost:4000`)
+- `VITE_BACKEND_URL` (default: `https://skribbl-io-omega.vercel.app/`)
 
 ## Deployment
 
@@ -171,7 +171,7 @@ Frontend runs at `http://localhost:5173`.
 3. Build command: `npm run build`.
 4. Output directory: `dist`.
 5. Add env var:
-   - `VITE_BACKEND_URL=https://<your-backend-domain>`
+   - `VITE_BACKEND_URL=https://skribbl-io-m8s4.onrender.com`
 6. Deploy.
 
 ## Backend (Render)
@@ -181,7 +181,7 @@ Frontend runs at `http://localhost:5173`.
 3. Start command: `npm run start`.
 4. Add env vars:
    - `PORT=4000`
-   - `FRONTEND_ORIGIN=https://<your-vercel-domain>`
+   - `FRONTEND_ORIGIN=https://skribbl-io-omega.vercel.app`
    - `ROOM_IDLE_TIMEOUT_MS=1800000`
 5. Deploy.
 
