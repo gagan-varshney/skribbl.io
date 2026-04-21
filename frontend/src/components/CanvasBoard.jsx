@@ -30,6 +30,8 @@ function drawSegment(ctx, segment) {
   ctx.lineWidth = Number(segment.size || 5);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   if (segment.type === "start") {
     ctx.beginPath();
@@ -53,6 +55,7 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
   const lastPointRef = useRef(null);
   const strokeIdRef = useRef(null);
   const segmentsRef = useRef([]);
+  const dprRef = useRef(window.devicePixelRatio || 1);
 
   const [tool, setTool] = useState("brush");
   const [color, setColor] = useState("#111111");
@@ -61,9 +64,24 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Set canvas to render at device pixel ratio for crisp output
+    const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
+    
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width || 900;
+    const displayHeight = rect.height || 520;
+    
+    canvas.width = displayWidth * dpr;
+    canvas.height = displayHeight * dpr;
+    canvas.style.width = displayWidth + "px";
+    canvas.style.height = displayHeight + "px";
+
     const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
   }, []);
 
   useEffect(() => {
@@ -72,9 +90,13 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
     const ctx = canvas.getContext("2d");
 
     const redraw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = canvas.getBoundingClientRect();
+      const displayWidth = rect.width || 900;
+      const displayHeight = rect.height || 520;
+      
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, displayWidth, displayHeight);
       for (const segment of segmentsRef.current) {
         drawSegment(ctx, segment);
       }
@@ -103,16 +125,38 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
   }, [socket]);
 
   const getPoint = (event) => {
-    const rect = canvasRef.current.getBoundingClientRect();
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    
+    const rect = canvas.getBoundingClientRect();
+    const dpr = dprRef.current;
+    
+    // Support both pointer and touch events
+    const clientX = event.clientX ?? (event.touches?.[0]?.clientX);
+    const clientY = event.clientY ?? (event.touches?.[0]?.clientY);
+    
+    if (clientX === undefined || clientY === undefined) {
+      return null;
+    }
+    
+    // Calculate coordinates relative to canvas display position
+    const displayX = clientX - rect.left;
+    const displayY = clientY - rect.top;
+    
+    // No need to scale by DPR since canvas is already scaled and we're working in display space
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+      x: displayX,
+      y: displayY
     };
   };
 
   const handlePointerDown = (event) => {
     if (!canDraw) return;
+    event.preventDefault();
+    
     const point = getPoint(event);
+    if (!point) return;
+    
     drawingRef.current = true;
     lastPointRef.current = point;
     strokeIdRef.current = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -125,7 +169,20 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
 
   const handlePointerMove = (event) => {
     if (!canDraw || !drawingRef.current || !lastPointRef.current) return;
+    event.preventDefault();
+    
     const point = getPoint(event);
+    if (!point) return;
+    
+    // Calculate distance for smoother drawing
+    const distance = Math.sqrt(
+      Math.pow(point.x - lastPointRef.current.x, 2) + 
+      Math.pow(point.y - lastPointRef.current.y, 2)
+    );
+    
+    // Lower threshold for more responsive drawing (0.5 pixels)
+    if (distance < 0.5) return;
+    
     const segment = {
       type: "move",
       fromX: lastPointRef.current.x,
@@ -154,10 +211,14 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
   const clearCanvas = () => {
     if (!canDraw) return;
     segmentsRef.current = [];
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width || 900;
+    const displayHeight = rect.height || 520;
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
     socket.emit("clear_canvas");
   };
 
@@ -166,10 +227,14 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
     const lastStroke = [...segmentsRef.current].reverse().find((s) => s.strokeId)?.strokeId;
     if (!lastStroke) return;
     segmentsRef.current = segmentsRef.current.filter((s) => s.strokeId !== lastStroke);
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width || 900;
+    const displayHeight = rect.height || 520;
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
     for (const segment of segmentsRef.current) drawSegment(ctx, segment);
     socket.emit("undo_stroke");
   };
@@ -179,12 +244,14 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
       <canvas
         ref={canvasRef}
         className="draw-canvas"
-        width={900}
-        height={520}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endStroke}
         onPointerLeave={endStroke}
+        onTouchStart={handlePointerDown}
+        onTouchMove={handlePointerMove}
+        onTouchEnd={endStroke}
+        style={{ width: "100%", height: "100%", display: "block" }}
       />
 
       {classic ? (

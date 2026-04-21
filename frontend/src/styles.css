@@ -1105,17 +1105,13 @@ select {
   max-height: 620px;
 }
 
-.toolbar-classic {
-  border-top: 2px solid #2f3a5e;
-  background: #213766;
-  min-height: 52px;
-  display: grid;
-  grid-template-columns: 1fr 86px 182px;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 6px;
-}
-
+  @media (max-width: 480px) {
+    .canvas-wrap-classic .draw-canvas {
+      max-height: 70vh;
+      height: auto;
+    }
+  }
+  
 .classic-colors {
   display: grid;
   grid-template-columns: repeat(13, 1fr);
@@ -1234,62 +1230,245 @@ select {
   z-index: 30;
 }
 
+@media (max-width: 768px) {
+  .page {
+    padding: 12px;
+  }
+
+  .logo-word {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    margin-bottom: 8px;
+  }
+
+  .logo-word img {
+    max-width: 100px;
+  }
+
+  .game-logo-small {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+  }
+
+  .game-logo-small img {
+    max-width: 70px;
+  }
+
+  .btn,
+  .btn-play,
+  .btn-room {
+    font-size: 1.2rem;
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+
+  .start-row,
+  .classic-settings-row,
+  .classic-actions-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  select,
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+}
+
 @media (max-width: 480px) {
+  .page {
+    padding: 8px;
+  }
+
+  .logo-word {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    margin-bottom: 6px;
+  }
+
+  .logo-word img {
+    max-width: 140px;
+  }
+
+  .game-logo-small {
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+  }
+
+  .game-logo-small img {
+    max-width: 100px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  .btn,
+  .btn-play,
+  .btn-room,
+  .btn-mini,
+  .btn-primary {
+    font-size: 1rem;
+    padding: 8px 12px;
+    min-height: 40px;
+    border-radius: 4px;
+  }
+
   .lobby-shell,
   .game-grid,
-  .game-topbar {
+  .game-topbar,
+  .lobby-body,
+  .classic-settings-row,
+  .classic-actions-row,
+  .game-classic-body,
+  .home-info-strip,
+  .start-row {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .chat-feed {
-    height: 220px;
+    height: 200px;
+    font-size: 0.9rem;
   }
 
-  .home-info-strip {
-    grid-template-columns: 1fr;
-    justify-content: stretch;
+  .chat-box-classic .chat-feed {
+    height: 240px;
   }
 
-  .start-row {
-    grid-template-columns: 1fr;
+  .classic-word-label {
+    font-size: 0.8rem;
   }
 
-  .btn-play,
-  .btn-room {
-    font-size: 1.4rem;
-  }
-
-  .lobby-body {
-    grid-template-columns: 1fr;
-  }
-
-  .classic-settings-row {
-    grid-template-columns: 1fr;
-  }
-
-  .classic-actions-row {
-    grid-template-columns: 1fr;
-  }
-
-  .game-classic-body {
-    grid-template-columns: 1fr;
-  }
-
-  .hotkeys-grid {
-    grid-template-columns: 1fr 1fr;
+  .classic-word-value {
+    font-size: 1.2rem;
   }
 
   .game-classic-topbar {
     grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 8px;
+    gap: 4px;
+    padding: 4px 6px;
+    min-height: 44px;
+    margin-bottom: 4px;
+  }
+
+  .classic-top-left,
+  .classic-top-center,
+  .classic-top-right {
+    min-width: auto;
+    font-size: 0.9rem;
+  }
+
+  .classic-top-left {
+    font-size: 1rem;
+  }
+
+  .classic-word-label {
+    font-size: 0.7rem;
+  }
+
+  .classic-word-value {
+    font-size: 1rem;
+  }
+
+  .rank-list,
+  .classic-rank-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .rank-no {
+    min-width: auto;
+    font-size: 0.8rem;
+  }
+
+  .rank-meta strong {
+    font-size: 0.9rem;
+  }
+
+  .rank-meta span {
+    font-size: 0.8rem;
+  }
+
+  .hotkeys-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .toolbar-classic {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
 
-  .chat-box-classic .chat-feed {
-    height: 260px;
+  select,
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    font-size: 16px;
+    padding: 6px 8px;
+  }
+
+  .classic-custom-area {
+    min-height: 60px;
+    font-size: 0.9rem;
+  }
+
+  .player-item,
+  .lobby-player {
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+
+  .avatar-pills {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .avatar-pills .p {
+    width: 20px;
+    height: 20px;
+  }
+
+  .timer-badge {
+    font-size: 1.2rem;
+    min-width: 40px;
+  }
+
+  .settings-btn {
+    font-size: 1.2rem;
+    padding: 4px 8px;
+  }
+
+  .classic-choices-modal {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    width: 90%;
+    max-width: 400px;
+  }
+
+  .choices-modal {
+    padding: 10px;
+  }
+
+  .choices-row {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .choices-row .btn {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    flex: 1;
+    min-width: calc(50% - 3px);
   }
 }
