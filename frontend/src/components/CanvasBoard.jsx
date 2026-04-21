@@ -16,35 +16,50 @@ const CLASSIC_COLORS = [
   "#7e401e"
 ];
 
-function drawSegment(ctx, segment) {
+function drawSegment(ctx, segment, scale = 1) {
   if (!ctx || !segment) return;
 
   if (segment.type === "clear") {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const canvas = ctx.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width || 900;
+    const displayHeight = rect.height || 520;
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
     return;
   }
 
   const isErase = segment.tool === "eraser";
   ctx.globalCompositeOperation = isErase ? "destination-out" : "source-over";
   ctx.strokeStyle = segment.color || "#111111";
-  ctx.lineWidth = Number(segment.size || 5);
+  
+  // Scale the brush size based on display scale
+  ctx.lineWidth = Number(segment.size || 5) / scale;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
   if (segment.type === "start") {
+    // Convert logical coordinates back to display space
+    const displayX = segment.x / scale;
+    const displayY = segment.y / scale;
     ctx.beginPath();
-    ctx.arc(segment.x, segment.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.arc(displayX, displayY, ctx.lineWidth / 2, 0, Math.PI * 2);
     ctx.fillStyle = isErase ? "rgba(0,0,0,1)" : ctx.strokeStyle;
     ctx.fill();
     return;
   }
 
   if (segment.type === "move") {
+    // Convert logical coordinates back to display space
+    const displayFromX = segment.fromX / scale;
+    const displayFromY = segment.fromY / scale;
+    const displayToX = segment.toX / scale;
+    const displayToY = segment.toY / scale;
+    
     ctx.beginPath();
-    ctx.moveTo(segment.fromX, segment.fromY);
-    ctx.lineTo(segment.toX, segment.toY);
+    ctx.moveTo(displayFromX, displayFromY);
+    ctx.lineTo(displayToX, displayToY);
     ctx.stroke();
   }
 }
@@ -56,16 +71,20 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
   const strokeIdRef = useRef(null);
   const segmentsRef = useRef([]);
   const dprRef = useRef(window.devicePixelRatio || 1);
+  const scaleRef = useRef(1); // Scale factor for normalizing coordinates
 
   const [tool, setTool] = useState("brush");
   const [color, setColor] = useState("#111111");
   const [size, setSize] = useState(5);
 
+  // Fixed logical canvas dimensions for consistent drawing across devices
+  const LOGICAL_WIDTH = 900;
+  const LOGICAL_HEIGHT = 520;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas to render at device pixel ratio for crisp output
     const dpr = window.devicePixelRatio || 1;
     dprRef.current = dpr;
     
@@ -73,6 +92,10 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
     const displayWidth = rect.width || 900;
     const displayHeight = rect.height || 520;
     
+    // Calculate scale factor to map display coordinates to logical canvas
+    scaleRef.current = LOGICAL_WIDTH / displayWidth;
+    
+    // Set physical canvas size for high DPI rendering
     canvas.width = displayWidth * dpr;
     canvas.height = displayHeight * dpr;
     canvas.style.width = displayWidth + "px";
@@ -93,12 +116,13 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
       const rect = canvas.getBoundingClientRect();
       const displayWidth = rect.width || 900;
       const displayHeight = rect.height || 520;
+      const scale = scaleRef.current;
       
       ctx.clearRect(0, 0, displayWidth, displayHeight);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, displayWidth, displayHeight);
       for (const segment of segmentsRef.current) {
-        drawSegment(ctx, segment);
+        drawSegment(ctx, segment, scale);
       }
     };
 
@@ -117,7 +141,8 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
         return;
       }
       segmentsRef.current.push(segment);
-      drawSegment(ctx, segment);
+      const scale = scaleRef.current;
+      drawSegment(ctx, segment, scale);
     };
 
     socket.on("draw_data", onDrawData);
@@ -129,7 +154,6 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
     if (!canvas) return null;
     
     const rect = canvas.getBoundingClientRect();
-    const dpr = dprRef.current;
     
     // Support both pointer and touch events
     const clientX = event.clientX ?? (event.touches?.[0]?.clientX);
@@ -143,10 +167,11 @@ export default function CanvasBoard({ socket, canDraw, classic = false }) {
     const displayX = clientX - rect.left;
     const displayY = clientY - rect.top;
     
-    // No need to scale by DPR since canvas is already scaled and we're working in display space
+    // Normalize to logical canvas space (0-900, 0-520) for consistent drawing
+    const scale = scaleRef.current;
     return {
-      x: displayX,
-      y: displayY
+      x: displayX * scale,
+      y: displayY * scale
     };
   };
 
