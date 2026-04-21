@@ -86,6 +86,11 @@ p {
   text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
 }
 
+.logo-word img {
+  max-width: 250px;
+  height: auto;
+}
+
 .logo-word span {
   display: inline-block;
 }
@@ -870,6 +875,11 @@ select {
   font-size: clamp(2.8rem, 4vw, 4.2rem);
   text-align: left;
   margin: 0;
+}
+
+.game-logo-small img {
+  max-width: 220px;
+  height: auto;
 }
 
 .game-classic-topbar {

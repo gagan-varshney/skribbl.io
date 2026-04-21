@@ -5,6 +5,7 @@ import { getStoredPlayerId, getStoredPlayerName } from "../utils/storage";
 import CanvasBoard from "../components/CanvasBoard";
 import ChatBox from "../components/ChatBox";
 import Notification from "../components/Notification";
+import logogif from "../img/logo.gif";
 
 export default function GamePage() {
   const { roomCode } = useParams();
@@ -82,6 +83,29 @@ export default function GamePage() {
       }));
     };
     const onChatMessage = (msg) => setMessages((prev) => [...prev.slice(-99), msg]);
+    const onPlayerJoined = ({ player, reconnected }) => {
+      setMessages((prev) => {
+        // Prevent duplicates by checking if this player message already exists
+        const isDuplicate = prev.some(
+          (msg) =>
+            msg.playerId === player.id &&
+            (msg.message?.includes(player.name) ||
+              Date.now() - (msg.timestamp || 0) < 100)
+        );
+
+        if (isDuplicate) return prev;
+
+        const message = {
+          type: "system",
+          message: reconnected
+            ? `${player.name} reconnected`
+            : `${player.name} joined the game`,
+          timestamp: Date.now(),
+          playerId: player.id
+        };
+        return [...prev.slice(-99), message];
+      });
+    };
     const onRoundEnd = (payload) => setRoundResult(payload);
     const onGameOver = (payload) => setGameOver(payload);
 
@@ -92,6 +116,7 @@ export default function GamePage() {
     socket.on("hint_update", onHintUpdate);
     socket.on("timer_update", onTimer);
     socket.on("chat_message", onChatMessage);
+    socket.on("player_joined", onPlayerJoined);
     socket.on("round_end", onRoundEnd);
     socket.on("game_over", onGameOver);
 
@@ -103,6 +128,7 @@ export default function GamePage() {
       socket.off("hint_update", onHintUpdate);
       socket.off("timer_update", onTimer);
       socket.off("chat_message", onChatMessage);
+      socket.off("player_joined", onPlayerJoined);
       socket.off("round_end", onRoundEnd);
       socket.off("game_over", onGameOver);
     };
@@ -143,14 +169,9 @@ export default function GamePage() {
       <div className="game-classic-wrap">
         <div className="game-logo-row">
           <h1 className="logo-word game-logo-small">
-            <span className="l1">s</span>
-            <span className="l2">k</span>
-            <span className="l3">r</span>
-            <span className="l4">i</span>
-            <span className="l5">b</span>
-            <span className="l6">b</span>
-            <span className="l7">l</span>
-            <span className="l8">.io</span>
+            <img src={logogif} alt="logo"
+            className="cursor-pointer hover:scale-105 transition"
+            onClick={() => navigate("/")} />
           </h1>
         </div>
 

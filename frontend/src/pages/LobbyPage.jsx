@@ -15,6 +15,7 @@ export default function LobbyPage() {
   const [error, setError] = useState("");
   const [customWordsText, setCustomWordsText] = useState("");
   const [notification, setNotification] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   const playerId = useMemo(() => getStoredPlayerId(), []);
 
@@ -55,17 +56,44 @@ export default function LobbyPage() {
       setNotification("You were banned from the room.");
       navigate("/");
     };
+    const onPlayerJoined = ({ player, reconnected }) => {
+      setMessages((prev) => {
+        // Prevent duplicates by checking if this player message already exists
+        const messageId = `${player.id}-${Date.now()}`;
+        const isDuplicate = prev.some(
+          (msg) =>
+            msg.playerId === player.id &&
+            (msg.text.includes(player.name) ||
+              Date.now() - (msg.timestamp || 0) < 100)
+        );
+
+        if (isDuplicate) return prev;
+
+        const message = {
+          type: "system",
+          text: reconnected
+            ? `${player.name} reconnected`
+            : `${player.name} joined the room`,
+          timestamp: Date.now(),
+          playerId: player.id,
+          messageId
+        };
+        return [...prev.slice(-19), message];
+      });
+    };
 
     socket.on("room_state", onRoomState);
     socket.on("start_game", onStartGame);
     socket.on("kicked", onKicked);
     socket.on("banned", onBanned);
+    socket.on("player_joined", onPlayerJoined);
 
     return () => {
       socket.off("room_state", onRoomState);
       socket.off("start_game", onStartGame);
       socket.off("kicked", onKicked);
       socket.off("banned", onBanned);
+      socket.off("player_joined", onPlayerJoined);
     };
   }, [code, navigate, playerId, playerName, socket]);
 
@@ -124,7 +152,7 @@ export default function LobbyPage() {
               onBan={(targetId) => socket.emit("ban_player", { playerId: targetId })}
             />
             <button className="btn btn-mini" onClick={toggleReady}>
-              Toggle Ready
+              Ready
             </button>
           </aside>
 
@@ -211,12 +239,19 @@ export default function LobbyPage() {
 
           <aside className="lobby-right">
             <div className="lobby-feed">
-              {error ? (
-                <p className="lobby-feed-system lobby-feed-error">{error}</p>
+              {messages.length > 0 ? (
+                messages.map((msg, idx) => (
+                  <p key={idx} className="lobby-feed-system">
+                    {msg.text}
+                  </p>
+                ))
               ) : (
                 <p className="lobby-feed-system">
                   {myPlayer?.name || "Player"} is now {isHost ? "the room owner" : "in the room"}.
                 </p>
+              )}
+              {error && (
+                <p className="lobby-feed-system lobby-feed-error">{error}</p>
               )}
             </div>
             <input className="lobby-guess-placeholder" disabled placeholder="Type your guess here..." />
